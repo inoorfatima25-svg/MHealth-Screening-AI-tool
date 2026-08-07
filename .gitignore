@@ -1,0 +1,48 @@
+# ── Secrets ──────────────────────────────────────────────────────────────────
+# .env.local holds the Supabase service_role key, which bypasses row-level
+# security. It must never be committed. Only the .example file is tracked.
+.env
+.env.local
+.env*.local
+.env.production
+
+# ── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ── Next.js build output ─────────────────────────────────────────────────────
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# ── Testing / coverage ───────────────────────────────────────────────────────
+coverage/
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Deployment ───────────────────────────────────────────────────────────────
+.vercel
+
+# ── Source instrument documents ──────────────────────────────────────────────
+# Participant-facing research material and extraction scratch output. These are
+# inputs to src/data/sections/*.ts, not code. Remove these lines if the repo is
+# private and you want the source instrument versioned alongside it.
+*.docx
+*.pdf
+extracted_instrument*.txt
+src/data/sections/files.zip

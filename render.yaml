@@ -1,0 +1,37 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# This deploys ONE web service. There is no separate backend: the survey UI,
+# the admin panel, server actions and /api/admin/export all run in the same
+# Next.js process. The database is Supabase and is not managed here.
+#
+# Secrets are NOT stored in this file. sync: false means Render prompts for the
+# value on first deploy and keeps it in the dashboard — never in git.
+services:
+  - type: web
+    name: mental-health-screening
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+
+    # Next.js binds to $PORT, which Render sets automatically.
+    envVars:
+      - key: NODE_VERSION
+        value: "22.20.0"
+
+      # Public — shipped to the browser. Safe to expose; the anon key can only
+      # INSERT (see supabase/schema.sql).
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+
+      # SECRET — bypasses row-level security. Server-only; never prefix with
+      # NEXT_PUBLIC_. Used by the admin panel to read responses.
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+    healthCheckPath: /survey
