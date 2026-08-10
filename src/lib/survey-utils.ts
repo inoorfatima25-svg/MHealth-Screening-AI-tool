@@ -1,5 +1,5 @@
 import { SCALES } from '@/data/scales';
-import { sections } from '@/data/questions';
+import { MANDATORY_SECTION_COUNT, sections } from '@/data/questions';
 import type { AnswerValue, Question, Section, Subsection } from '@/types/survey';
 
 export interface FlatQuestion {
@@ -131,4 +131,49 @@ export function countQuestionsInSection(
     if (shouldShowQuestion(question, answers)) count += 1;
   });
   return count;
+}
+
+export { MANDATORY_SECTION_COUNT };
+
+export function isSectionComplete(
+  sectionIndex: number,
+  answers: Record<string, AnswerValue>
+): boolean {
+  return getAllQuestionsFlat()
+    .filter(
+      (item) =>
+        item.sectionIndex === sectionIndex &&
+        shouldShowQuestion(item.question, answers)
+    )
+    .every(
+      (item) =>
+        !item.question.required ||
+        isAnswered(item.question, answers[item.question.id])
+    );
+}
+
+export function areMandatorySectionsComplete(
+  answers: Record<string, AnswerValue>
+): boolean {
+  for (let i = 0; i < MANDATORY_SECTION_COUNT; i++) {
+    if (!isSectionComplete(i, answers)) return false;
+  }
+  return true;
+}
+
+export function findFirstIncompleteMandatoryFlatIndex(
+  answers: Record<string, AnswerValue>
+): number | null {
+  const visible = getVisibleFlatQuestions(answers);
+  for (let idx = 0; idx < visible.length; idx++) {
+    const item = visible[idx];
+    if (item.sectionIndex >= MANDATORY_SECTION_COUNT) break;
+    if (
+      item.question.required &&
+      !isAnswered(item.question, answers[item.question.id])
+    ) {
+      return idx;
+    }
+  }
+  return null;
 }

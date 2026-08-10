@@ -40,3 +40,6 @@ export const sections: Section[] = [
 ];
 
 export const TOTAL_SECTIONS = sections.length;
+
+/** UI sections 1–17; section 18 (contact / gratitude) is optional. */
+export const MANDATORY_SECTION_COUNT = TOTAL_SECTIONS - 1;

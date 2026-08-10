@@ -9,6 +9,8 @@ interface NavigationButtonsProps {
   canGoNext: boolean;
   canGoPrevious?: boolean;
   isLast?: boolean;
+  submitBlockedReason?: string;
+  onGoToIncomplete?: () => void;
 }
 
 /**
@@ -21,6 +23,8 @@ export function NavigationButtons({
   canGoNext,
   canGoPrevious = true,
   isLast = false,
+  submitBlockedReason,
+  onGoToIncomplete,
 }: NavigationButtonsProps) {
   const language = useSurveyStore((s) => s.language);
   const isUrdu = language === 'ur';
@@ -35,7 +39,21 @@ export function NavigationButtons({
       : 'Next';
 
   return (
-    <div className="shrink-0 border-t border-line bg-card/85 px-5 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] backdrop-blur-md">
+    <div className="shrink-0 border-t border-line bg-card/85 px-4 py-3.5 pb-[max(0.875rem,env(safe-area-inset-bottom))] backdrop-blur-md sm:px-5">
+      {submitBlockedReason && (
+        <div className="mb-2.5 rounded-card border border-coral/30 bg-coral-light px-3 py-2 text-center text-[12px] text-ink-soft">
+          <p className={isUrdu ? 'font-urdu leading-relaxed' : ''}>{submitBlockedReason}</p>
+          {onGoToIncomplete && (
+            <button
+              type="button"
+              onClick={onGoToIncomplete}
+              className={`tap mt-1.5 text-[12px] font-semibold text-primary ${isUrdu ? 'font-urdu' : ''}`}
+            >
+              {isUrdu ? 'نامکمل حصے پر جائیں' : 'Go to incomplete section'}
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex items-center gap-3">
         <button
           type="button"

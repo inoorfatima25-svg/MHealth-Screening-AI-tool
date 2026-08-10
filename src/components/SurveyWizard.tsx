@@ -12,11 +12,15 @@ import { SafetyFollowUp } from '@/components/SafetyFollowUp';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { TOTAL_SECTIONS } from '@/data/questions';
 import {
+  areMandatorySectionsComplete,
   computeGad7Score,
   computePhq9Score,
+  findFirstIncompleteMandatoryFlatIndex,
   getPhq9Item9Score,
   getVisibleFlatQuestions,
   isAnswered,
+  isSectionComplete,
+  MANDATORY_SECTION_COUNT,
 } from '@/lib/survey-utils';
 import type { AnswerValue } from '@/types/survey';
 import { upsertResponse } from '@/lib/supabase';
@@ -134,6 +138,7 @@ export function SurveyWizard() {
   const finalizeSubmit = useCallback(
     async (phq9Flag: boolean) => {
       if (!consent) return;
+      if (!areMandatorySectionsComplete(answers)) return;
       try {
         const gad7 = computeGad7Score(answers);
         const phq9 = computePhq9Score(answers);
@@ -170,6 +175,15 @@ export function SurveyWizard() {
     const isLast = flatIndex >= visibleQuestions.length - 1;
 
     if (isLast) {
+      if (!areMandatorySectionsComplete(answers)) {
+        const jump = findFirstIncompleteMandatoryFlatIndex(answers);
+        if (jump !== null) {
+          setFlatIndex(jump);
+          const item = visibleQuestions[jump];
+          if (item) setPosition(item.sectionIndex, jump);
+        }
+        return;
+      }
       const phq9Flag = getPhq9Item9Score(answers) >= 1;
       if (phq9Flag && !safetyFollowUp && !showSafety) {
         setShowSafety(true);
@@ -240,10 +254,25 @@ export function SurveyWizard() {
     if (next) jumpToSection(next.firstFlatIndex);
   }, [currentSectionNavIndex, visibleSections, jumpToSection]);
 
-  const canGoNext = currentItem
+  const isLastQuestion = flatIndex >= visibleQuestions.length - 1;
+
+  const mandatorySectionsComplete = useMemo(
+    () => areMandatorySectionsComplete(answers),
+    [answers]
+  );
+
+  const firstIncompleteMandatoryIndex = useMemo(
+    () => findFirstIncompleteMandatoryFlatIndex(answers),
+    [answers]
+  );
+
+  const currentQuestionOk = currentItem
     ? !currentItem.question.required ||
       isAnswered(currentItem.question, answers[currentItem.question.id])
     : false;
+
+  const canGoNext =
+    currentQuestionOk && (!isLastQuestion || mandatorySectionsComplete);
 
   // ── Phases ───────────────────────────────────────────────────────────────
   if (phase === 'welcome') {
@@ -390,7 +419,8 @@ export function SurveyWizard() {
             <div className="scroll-soft max-h-[min(58vh,380px)] overflow-y-auto p-1.5">
               {visibleSections.map((sec, navIdx) => {
                 const isCurrent = sec.sectionIndex === currentItem.sectionIndex;
-                const isVisited = sec.firstFlatIndex <= flatIndex;
+                const isComplete = isSectionComplete(sec.sectionIndex, answers);
+                const isOptional = sec.sectionIndex === MANDATORY_SECTION_COUNT;
 
                 return (
                   <button
@@ -405,25 +435,32 @@ export function SurveyWizard() {
                         ${
                           isCurrent
                             ? 'bg-primary text-white'
-                            : isVisited
+                            : isComplete
                               ? 'bg-primary-light text-primary'
                               : 'bg-surface-sunken text-ink-mute'
                         }`}
                     >
-                      {isVisited && !isCurrent ? (
+                      {isComplete && !isCurrent ? (
                         <Check className="h-3 w-3" strokeWidth={3} />
                       ) : (
                         navIdx + 1
                       )}
                     </span>
 
-                    <p
-                      className={`min-w-0 flex-1 truncate text-[13px] ${
-                        isCurrent ? 'font-semibold text-primary-dark' : 'text-ink-soft'
-                      } ${isUrdu ? 'font-urdu' : ''}`}
-                    >
-                      {isUrdu ? sec.label_ur : sec.label_en}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p
+                        className={`truncate text-[13px] ${
+                          isCurrent ? 'font-semibold text-primary-dark' : 'text-ink-soft'
+                        } ${isUrdu ? 'font-urdu' : ''}`}
+                      >
+                        {isUrdu ? sec.label_ur : sec.label_en}
+                      </p>
+                      {isOptional && (
+                        <p className={`text-[10px] text-ink-mute ${isUrdu ? 'font-urdu' : ''}`}>
+                          {isUrdu ? 'اختیاری' : 'Optional'}
+                        </p>
+                      )}
+                    </div>
 
                     {isCurrent && (
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
@@ -453,7 +490,19 @@ export function SurveyWizard() {
         onNext={goNext}
         canGoNext={canGoNext}
         canGoPrevious={flatIndex > 0}
-        isLast={flatIndex >= visibleQuestions.length - 1}
+        isLast={isLastQuestion}
+        submitBlockedReason={
+          isLastQuestion && !mandatorySectionsComplete
+            ? isUrdu
+              ? 'جمع کرانے سے پہلے حصے 1–17 مکمل کریں۔'
+              : 'Complete sections 1–17 before submitting.'
+            : undefined
+        }
+        onGoToIncomplete={
+          firstIncompleteMandatoryIndex !== null
+            ? () => jumpToSection(firstIncompleteMandatoryIndex)
+            : undefined
+        }
       />
     </div>
   );

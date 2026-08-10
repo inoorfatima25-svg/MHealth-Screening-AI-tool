@@ -24,7 +24,7 @@ export const viewport: Viewport = {
   themeColor: '#EAEFED',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -35,8 +35,10 @@ export default function RootLayout({
   return (
     <html lang="ur" className={`${dmSans.variable} ${notoUrdu.variable}`}>
       <body className="font-sans antialiased">
-        <div className="app-ambient min-h-dvh md:flex md:items-center md:justify-center md:py-6">
-          {children}
+        <div className="app-ambient flex min-h-dvh w-full flex-col md:min-h-0 md:items-center md:justify-center md:py-6 lg:py-8">
+          <div className="mx-auto flex w-full min-h-0 min-w-0 flex-1 flex-col md:flex-none md:max-w-[min(100%,42rem)] lg:max-w-[min(100%,48rem)]">
+            {children}
+          </div>
         </div>
       </body>
     </html>

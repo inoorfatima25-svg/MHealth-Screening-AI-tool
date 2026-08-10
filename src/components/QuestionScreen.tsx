@@ -188,7 +188,7 @@ export function QuestionScreen({
 
           <div className="min-w-0 flex-1">
             <p
-              className={`truncate text-[13.5px] font-semibold leading-snug text-ink ${
+              className={`truncate text-[clamp(13px,3.5vw,15px)] font-semibold leading-snug text-ink ${
                 isUrdu ? 'font-urdu' : 'font-sans'
               }`}
               dir={isUrdu ? 'rtl' : 'ltr'}

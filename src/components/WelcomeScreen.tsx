@@ -38,7 +38,7 @@ export function WelcomeScreen() {
           </div>
 
           <h1
-            className="animate-fade-up font-urdu text-[26px] font-bold leading-[1.9] text-ink"
+            className="animate-fade-up font-urdu text-[clamp(22px,6vw,28px)] font-bold leading-[1.9] text-ink"
             dir="rtl"
           >
             ذہنی صحت سکریننگ
@@ -52,7 +52,7 @@ export function WelcomeScreen() {
         </div>
 
         {/* ── Assurances ── */}
-        <div className="mt-6 grid grid-cols-3 gap-2">
+        <div className="mt-6 grid grid-cols-3 gap-1.5 sm:gap-2">
           {ASSURANCES.map(({ icon: Icon, ur, en }, i) => (
             <div
               key={ur}

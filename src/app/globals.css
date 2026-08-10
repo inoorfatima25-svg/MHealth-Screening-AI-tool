@@ -49,14 +49,30 @@ body {
      Fixed height so the question area scrolls internally and the
      header / footer never drift — behaves like a native app shell. */
   .survey-container {
-    @apply relative mx-auto flex w-full max-w-survey flex-col overflow-hidden bg-surface-sunken;
+    @apply relative mx-auto flex w-full min-w-0 max-w-full flex-col overflow-hidden bg-surface-sunken;
     height: 100dvh;
+    height: 100svh;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  @media (min-width: 640px) {
+    .survey-container {
+      @apply max-w-[440px];
+    }
   }
 
   @media (min-width: 768px) {
     .survey-container {
       height: min(880px, calc(100dvh - 3rem));
-      @apply rounded-[28px] border border-line shadow-float;
+      @apply max-w-survey rounded-[28px] border border-line shadow-float;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .survey-container {
+      height: min(920px, calc(100dvh - 4rem));
+      max-width: 560px;
     }
   }
 
