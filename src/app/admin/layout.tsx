@@ -4,8 +4,8 @@ import { AdminNav } from '@/components/admin/AdminNav';
 
 export const metadata: Metadata = {
   title: 'Admin — Mental Health Screening',
-  // This panel is unauthenticated and shows participant data. At minimum keep
-  // it out of search indexes.
+  // Gated by middleware.ts (HTTP Basic Auth, ADMIN_PASSWORD env var), but
+  // still keep it out of search indexes as defence in depth.
   robots: { index: false, follow: false, nocache: true },
 };
 
