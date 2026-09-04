@@ -17,6 +17,13 @@ import type { NextRequest } from 'next/server';
  * than left open — a missing password must never fail open.
  */
 export function middleware(req: NextRequest) {
+  // Team dashboard is intentionally public — aggregate counts only, no
+  // participant IDs, timestamps, or individual answers. Everything else
+  // under /admin stays behind the password below.
+  if (req.nextUrl.pathname.startsWith('/admin/team-dashboard')) {
+    return NextResponse.next();
+  }
+
   const password = process.env.ADMIN_PASSWORD;
 
   const unauthorized = () =>
