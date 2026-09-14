@@ -67,6 +67,10 @@ function collapseSessions(rows: ResponseRow[]): ResponseRow[] {
 /**
  * Fetches every response, newest first, one row per participant.
  *
+ * Supabase/PostgREST limits a single response to 1000 rows by default,
+ * so we explicitly paginate through the entire table before collapsing
+ * append-only snapshots into one row per participant.
+ *
  * Soft-deleted sessions are excluded unless `includeDeleted` is set. Filtering
  * happens BEFORE collapsing, so a deleted session never occupies the slot of an
  * active one.
@@ -75,6 +79,7 @@ export async function fetchAllResponses(
   { includeDeleted = false }: { includeDeleted?: boolean } = {}
 ): Promise<FetchResult<ResponseRow[]>> {
   const supabase = getAdminSupabase();
+
   if (!supabase) {
     return {
       ok: false,
@@ -84,13 +89,44 @@ export async function fetchAllResponses(
     };
   }
 
-  let query = supabase.from('responses').select('*');
-  if (!includeDeleted) query = query.is('deleted_at', null);
+  const PAGE_SIZE = 1000;
+  const allRows: ResponseRow[] = [];
+  let from = 0;
 
-  const { data, error } = await query.order('created_at', { ascending: false });
+  while (true) {
+    let query = supabase.from('responses').select('*');
 
-  if (error) return { ok: false, reason: 'error', message: error.message };
-  return { ok: true, data: collapseSessions((data ?? []) as ResponseRow[]) };
+    if (!includeDeleted) {
+      query = query.is('deleted_at', null);
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) {
+      return {
+        ok: false,
+        reason: 'error',
+        message: error.message,
+      };
+    }
+
+    const page = (data ?? []) as ResponseRow[];
+    allRows.push(...page);
+
+    // We have reached the end of the table.
+    if (page.length < PAGE_SIZE) {
+      break;
+    }
+
+    from += PAGE_SIZE;
+  }
+
+  return {
+    ok: true,
+    data: collapseSessions(allRows),
+  };
 }
 
 /**
