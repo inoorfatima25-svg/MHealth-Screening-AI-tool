@@ -28,7 +28,10 @@ export function LikertGrid({
   const scale = question.grid_scale ?? getScaleOptions(question.scale_preset ?? 'gad7_phq9');
   const items = question.grid_items ?? [];
 
-  const answered = items.filter((it) => value[it.id] !== undefined).length;
+  const hasValidAnswer = (itemId: string) => scale.some((option) =>
+    value[itemId] !== undefined && value[itemId] !== null && option.value === String(value[itemId])
+  );
+  const answered = items.filter((it) => hasValidAnswer(it.id)).length;
 
   const setItem = (itemId: string, score: string) => {
     onChange({ ...value, [itemId]: score });
@@ -63,7 +66,7 @@ export function LikertGrid({
 
       {/* ── Item cards ── */}
       {items.map((item, i) => {
-        const isAnswered = value[item.id] !== undefined;
+        const isAnswered = hasValidAnswer(item.id);
 
         return (
           <div

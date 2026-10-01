@@ -64,9 +64,12 @@ export function isAnswered(question: Question, value: AnswerValue | undefined): 
       return typeof value === 'number' && !Number.isNaN(value);
     case 'likert_grid':
       if (typeof value !== 'object' || Array.isArray(value)) return false;
-      return (question.grid_items ?? []).every(
-        (item) => value[item.id] !== undefined && value[item.id] !== ''
-      );
+      return (question.grid_items ?? []).every((item) => {
+        const answer = value[item.id];
+        const scale = question.grid_scale ?? getQuestionOptions(question);
+        return (typeof answer === 'string' || typeof answer === 'number') &&
+          scale.some((option) => option.value === String(answer));
+      });
     case 'contact_dual':
       if (typeof value !== 'object' || Array.isArray(value)) return false;
       return Boolean(value.phone || value.email);
@@ -176,4 +179,16 @@ export function findFirstIncompleteMandatoryFlatIndex(
     }
   }
   return null;
+}
+
+/** A saved position must never bypass an incomplete required section. */
+export function getAllowedSectionIndex(
+  requestedIndex: number,
+  answers: Record<string, AnswerValue>
+): number {
+  const boundedIndex = Math.min(Math.max(requestedIndex, 0), sections.length - 1);
+  for (let i = 0; i < boundedIndex; i++) {
+    if (i < MANDATORY_SECTION_COUNT && !isSectionComplete(i, answers)) return i;
+  }
+  return boundedIndex;
 }

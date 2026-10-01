@@ -14,6 +14,7 @@ import { SingleSelect } from '@/components/SingleSelect';
 import { TextInput } from '@/components/TextInput';
 import { getAccent } from '@/components/accents';
 import { getQuestionOptions } from '@/data/scales';
+import { isAnswered } from '@/lib/survey-utils';
 import { useSurveyStore } from '@/store/surveyStore';
 import type { AnswerValue, Question, Section } from '@/types/survey';
 
@@ -80,19 +81,9 @@ export function SectionScreen({ section, questions, answers, onAnswer, page, tot
     scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
   }, [section.id, page]);
 
-  const completion = useMemo(() => {
-    let done = 0;
-    questions.forEach(({ question }) => {
-      const value = answers[question.id];
-      if (question.type === 'likert_grid' && value && typeof value === 'object' && !Array.isArray(value)) {
-        const items = question.grid_items ?? [];
-        if (items.length && items.every((i) => value[i.id] !== undefined && value[i.id] !== '')) done++;
-      } else if (value !== undefined && value !== '') {
-        if (Array.isArray(value) ? value.length > 0 : typeof value === 'string' ? value.trim().length > 0 : true) done++;
-      }
-    });
-    return done;
-  }, [answers, questions]);
+  const completion = useMemo(() => questions.filter(({ question }) =>
+    isAnswered(question, answers[question.id])
+  ).length, [answers, questions]);
 
   return (
     <main ref={scrollRef} className="scroll-soft min-h-0 flex-1 overflow-y-auto px-4 pb-5 sm:px-5" dir={isUrdu ? 'rtl' : 'ltr'}>

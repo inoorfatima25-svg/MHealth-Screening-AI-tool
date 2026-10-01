@@ -9,7 +9,7 @@ import { SectionScreen, type SectionQuestion } from '@/components/SectionScreen'
 import { ContactPage } from '@/components/ContactPage';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { MANDATORY_SECTION_COUNT, sections, TOTAL_SECTIONS } from '@/data/questions';
-import { areMandatorySectionsComplete, computeGad7Score, computePhq9Score, getPhq9Item9Score, isAnswered, shouldShowQuestion } from '@/lib/survey-utils';
+import { areMandatorySectionsComplete, computeGad7Score, computePhq9Score, getPhq9Item9Score, getAllowedSectionIndex, isAnswered, shouldShowQuestion } from '@/lib/survey-utils';
 import type { AnswerValue, Question } from '@/types/survey';
 import { upsertResponse } from '@/lib/supabase';
 import { useSurveyStore } from '@/store/surveyStore';
@@ -43,11 +43,11 @@ export function SurveyWizard() {
   const [showSectionNav, setShowSectionNav] = useState(false);
   const isUrdu = language === 'ur';
 
-  const sectionIndex = Math.min(Math.max(currentSectionIndex, 0), TOTAL_SECTIONS - 1);
+  const sectionIndex = getAllowedSectionIndex(currentSectionIndex, answers);
   const isContactPage = sections[sectionIndex]?.id === 'contact';
   const allSectionQuestions = useMemo(() => getSectionQuestions(sectionIndex, answers), [sectionIndex, answers]);
   const pages = useMemo(() => splitIntoPages(allSectionQuestions), [allSectionQuestions]);
-  const pageIndex = Math.min(Math.max(currentQuestionIndex, 0), Math.max(pages.length - 1, 0));
+  const pageIndex = sectionIndex !== currentSectionIndex ? 0 : Math.min(Math.max(currentQuestionIndex, 0), Math.max(pages.length - 1, 0));
   const currentPage = pages[pageIndex] ?? [];
 
   useEffect(() => {
@@ -138,11 +138,10 @@ export function SurveyWizard() {
   const jumpToSection = useCallback((idx: number) => {
     // Allow review of completed/current sections, but don't let a participant
     // skip ahead of an unanswered required section.
-    const firstIncomplete = completedSections.findIndex((done, i) => i < MANDATORY_SECTION_COUNT && !done);
-    if (idx > sectionIndex && firstIncomplete !== -1 && idx > firstIncomplete) return;
+    if (getAllowedSectionIndex(idx, answers) !== idx) return;
     setPosition(idx, 0);
     setShowSectionNav(false);
-  }, [completedSections, sectionIndex, setPosition]);
+  }, [answers, setPosition]);
 
   if (phase === 'welcome') return <div className="survey-container"><WelcomeScreen /></div>;
   if (phase === 'complete') return <div className="survey-container"><CompletionScreen /></div>;
@@ -190,7 +189,6 @@ export function SurveyWizard() {
                 return <button key={sec.id} type="button" disabled={locked} onClick={() => jumpToSection(idx)} className={`tap flex w-full items-center gap-3 rounded-card px-2.5 py-2.5 text-start ${idx === sectionIndex ? 'bg-primary-light' : 'hover:bg-surface-sunken'} ${locked ? 'opacity-35' : ''}`}>
                   <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10.5px] font-bold ${idx === sectionIndex ? 'bg-primary text-white' : done ? 'bg-primary-light text-primary' : 'bg-surface-sunken text-ink-mute'}`}>{done && idx !== sectionIndex ? <Check className="h-3 w-3" /> : idx + 1}</span>
                   <span className={`min-w-0 flex-1 truncate text-[12px] ${idx === sectionIndex ? 'font-semibold text-primary-dark' : 'text-ink-soft'} ${isUrdu ? 'font-urdu' : ''}`}>{isUrdu ? sec.title_ur : sec.title_en}</span>
-                  {idx === TOTAL_SECTIONS - 1 && <span className={`text-[9px] text-ink-mute ${isUrdu ? 'font-urdu' : ''}`}>{isUrdu ? 'اختیاری' : 'Optional'}</span>}
                 </button>;
               })}
             </div>
