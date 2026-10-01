@@ -209,7 +209,7 @@ export function SurveyWizard() {
         <div className="flex items-center gap-3">
           <button type="button" onClick={goBack} disabled={sectionIndex === 0 && pageIndex === 0} className={`tap min-h-[52px] rounded-card px-5 text-sm font-semibold text-ink-soft hover:bg-surface-sunken disabled:opacity-25 ${isUrdu ? 'font-urdu' : ''}`}>{isUrdu ? 'پچھلا' : 'Back'}</button>
           <button type="button" onClick={goForward} disabled={!canAdvance} className={`tap flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-card bg-gradient-to-br from-primary to-primary-bright text-sm font-bold text-white shadow-glow disabled:bg-line disabled:bg-none disabled:text-white/70 disabled:shadow-none ${isUrdu ? 'font-urdu' : ''}`}>
-            <span>{isContactPage ? (isUrdu ? 'آگے بڑھیں' : 'Continue') : isLastPage && sectionIndex === TOTAL_SECTIONS - 1 ? (isUrdu ? 'جمع کرائیں' : 'Submit') : isLastPage ? (isUrdu ? 'اگلے حصے پر جائیں' : 'Next section') : (isUrdu ? 'اگلا صفحہ' : 'Next page')}</span>
+            <span>{isLastPage && sectionIndex === TOTAL_SECTIONS - 1 ? (isUrdu ? 'جمع کرائیں' : 'Submit') : isLastPage ? (isUrdu ? 'اگلے حصے پر جائیں' : 'Next section') : (isUrdu ? 'اگلا صفحہ' : 'Next page')}</span>
             {isLastPage && sectionIndex === TOTAL_SECTIONS - 1 ? <Check className="h-4 w-4" /> : <ChevronRight className={`h-4 w-4 ${isUrdu ? 'rotate-180' : ''}`} />}
           </button>
         </div>
