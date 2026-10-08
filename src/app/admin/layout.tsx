@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { AdminNav } from '@/components/admin/AdminNav';
 
 export const metadata: Metadata = {
@@ -20,14 +19,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="fixed inset-0 z-50 overflow-y-auto bg-surface-sunken" dir="ltr">
       <header className="sticky top-0 z-20 border-b border-line bg-card/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-3 px-5 py-3">
-          <Link href="/admin" className="flex items-center gap-2.5">
+          <a href="/admin" className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-bright text-[13px] font-bold text-white shadow-glow">
               M
             </span>
             <span className="text-[15px] font-bold tracking-tight text-ink">
               Screening Admin
             </span>
-          </Link>
+          </a>
 
           <AdminNav />
         </div>

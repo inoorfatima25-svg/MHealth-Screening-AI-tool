@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Download, LayoutDashboard, ShieldAlert, Table2, Users } from 'lucide-react';
 
@@ -16,10 +15,11 @@ export function AdminNav() {
 
   return (
     <nav className="flex flex-1 items-center gap-1">
+      {/* Native links avoid prefetching protected pages from the public team dashboard. */}
       {LINKS.map(({ href, label, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
-          <Link
+          <a
             key={href}
             href={href}
             className={`tap flex items-center gap-1.5 rounded-chip px-3 py-1.5 text-[13px] font-semibold transition-colors ${
@@ -30,11 +30,11 @@ export function AdminNav() {
           >
             <Icon className="h-3.5 w-3.5" />
             {label}
-          </Link>
+          </a>
         );
       })}
 
-      {/* Plain anchor, not <Link> — this is a file download, not a route. */}
+      {/* The export endpoint requires authentication when clicked. */}
       <a
         href="/api/admin/export"
         className="tap ms-auto flex items-center gap-1.5 rounded-chip bg-gradient-to-br from-primary to-primary-bright px-3.5 py-2 text-[13px] font-bold text-white shadow-glow"
